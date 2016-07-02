@@ -419,7 +419,7 @@ def userInterface():
         print '1) PortScan'
         print '2) DOS'
         print '3) Send TCP message'
-        cmd = getIP(raw_input('> '))
+        cmd = raw_input('> ')
         
         
 

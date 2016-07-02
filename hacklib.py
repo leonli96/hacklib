@@ -134,7 +134,7 @@ class AuthClient(object):
         # ascertain the type of login page given by url
         logintype = self. _get_login_type()
         if logintype == 'BA':
-            # attempts to login with BA method and return True
+            # attempts to login with BA method and return html
            return self._login_BA()
         if logintype == 'TO':
             raise Exception('Request timed out.')
@@ -405,3 +405,23 @@ def topPasswords(amount):
     passlist = urllib2.urlopen(url).read().split('\n')
     return passlist[:amount]
 
+def userInterface():
+    '''Start text-based interface for easier usage if hacklib isn't being used as a library.
+    '''
+    print 'Enter an IP address/website or enter a number to use one of its corresponding classes.'
+    print '1) PortScan'
+    print '2) AuthClient'
+    print '3) DOSer'
+    cmd = raw_input('> ')
+    if '.' in cmd:
+        address = getIP(cmd)
+        print 'What would you like to do?'
+        print '1) PortScan'
+        print '2) DOS'
+        print '3) Send TCP message'
+        cmd = getIP(raw_input('> '))
+        
+        
+
+if __name__ == '__main__':
+    userInterface()

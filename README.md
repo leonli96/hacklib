@@ -179,14 +179,15 @@ u'KE'
 
 Word Mangling
 
-```
->>> from hacklib import *
+```python
 
->>> word = Mangle("Test", 0, 10, 1990, 2016)
+from hacklib import *
 
->>> word.Leet()
->>> word.Numbers()
->>> word.Years()
+word = Mangle("Test", 0, 10, 1990, 2016)
+
+word.Leet()
+word.Numbers()
+word.Years()
 
 Output:
 

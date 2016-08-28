@@ -177,7 +177,7 @@ u'KE'
 # proxylist = hacklib.getProxies(country_filter = ('RU', 'CA', 'SE'), proxy_type='Socks5')
 ```
 -
-Word Mangling
+Word Mangling:
 
 ```python
 

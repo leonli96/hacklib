@@ -188,7 +188,8 @@ word = Mangle("Test", 0, 10, 1990, 2016)
 word.Leet()
 word.Numbers()
 word.Years()
-
+```
+```
 Output:
 
 T3$t

@@ -204,7 +204,6 @@ Test1990
 ...snip...
 Test2016
 2016Test
-
  ```
 -
 
@@ -216,7 +215,6 @@ from hacklib import *
 Pattern = PatternCreate(100)
 
 Pattern.generate()
-
 ```
 Output:
 ```
@@ -232,7 +230,6 @@ from hacklib import *
 Offset = PatternOffset("6Ab7")
 
 Offset.find()
-
 ```
 
 Output:
